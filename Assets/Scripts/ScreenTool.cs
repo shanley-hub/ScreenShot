@@ -8,25 +8,19 @@ public delegate void CallBack();//利用委托回调可以先关闭UI，截取�
 public class ScreenTool
 {
     private static ScreenTool _instance;
-    public static ScreenTool Instance
-    {
-        get
-        {
-            if (_instance == null)
-                _instance = new ScreenTool();
-            return _instance;
-        }
-    }
+    public static ScreenTool Instance => _instance ??= new ScreenTool();
 
     /// <summary>
     /// UnityEngine自带截屏Api，只能截全屏
     /// </summary>
     /// <param name="fileName">文件名</param>
-    public void ScreenShotFile(string fileName)
+    /// <param name="callBack">截图完成回调</param>
+    public void ScreenShotFile(string fileName, CallBack callBack = null)
     {
-        UnityEngine.ScreenCapture.CaptureScreenshot(fileName);//截图并保存截图文件
-        Debug.Log(string.Format("截取了一张图片: {0}", fileName));
-
+        UnityEngine.ScreenCapture.CaptureScreenshot(fileName);//截图并保存截图文件;
+        Debug.Log($"截取了一张图片: {fileName}");
+        
+        callBack?.Invoke();
 #if UNITY_EDITOR
         UnityEditor.AssetDatabase.Refresh();//刷新Unity的资产目录
 #endif
@@ -43,7 +37,7 @@ public class ScreenTool
         Texture2D tex = UnityEngine.ScreenCapture.CaptureScreenshotAsTexture();//截图返回Texture2D对象
         byte[] bytes = tex.EncodeToPNG();//将纹理数据，转化成一个png图片
         System.IO.File.WriteAllBytes(fileName, bytes);//写入数据
-        Debug.Log(string.Format("截取了一张图片: {0}", fileName));
+        Debug.Log($"截取了一张图片: {fileName}");
 
         callBack?.Invoke();
 #if UNITY_EDITOR
@@ -66,19 +60,19 @@ public class ScreenTool
 
         byte[] bytes = tex.EncodeToPNG();//将纹理数据，转化成一个png图片
         System.IO.File.WriteAllBytes(fileName, bytes);//写入数据
-        Debug.Log(string.Format("截取了一张图片: {0}", fileName));
+        Debug.Log($"截取了一张图片: {fileName}");
 
         callBack?.Invoke();
 #if UNITY_EDITOR
         UnityEditor.AssetDatabase.Refresh();//刷新Unity的资产目录
 #endif
     }
+
     /// <summary>
     /// 对相机拍摄区域进行截图，如果需要多个相机，可类比添加，可截取多个相机的叠加画面
     /// </summary>
     /// <param name="camera">待截图的相机</param>
-    /// <param name="width">截取的图片宽度</param>
-    /// <param name="height">截取的图片高度</param>
+    /// <param name="rect">截取的图片尺寸(0,0,width,height)</param>
     /// <param name="fileName">文件名</param>
     /// <returns>返回Texture2D对象</returns>
     public Texture2D CameraCapture(Camera camera, Rect rect, string fileName)
@@ -100,7 +94,8 @@ public class ScreenTool
 
         byte[] bytes = tex.EncodeToPNG();//将纹理数据，转化成一个png图片
         System.IO.File.WriteAllBytes(fileName, bytes);//写入数据
-        Debug.Log(string.Format("截取了一张图片: {0}", fileName));
+        camera.gameObject.SetActive(false);//启用截图相机
+        Debug.Log($"截取了一张图片: {fileName}");
 
 #if UNITY_EDITOR
         UnityEditor.AssetDatabase.Refresh();//刷新Unity的资产目录
